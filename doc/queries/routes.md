@@ -42,6 +42,17 @@ To add the resolvers we go to our schema implementation and call the appropriate
   protected function getResolverRegistry() {
     ...
 
+    // Tell GraphQL how to resolve types of a common interface.
+    $registry->addTypeResolver('NodeInterface', function ($value) {
+      if ($value instanceof NodeInterface) {
+        switch ($value->bundle()) {
+          case 'article': return 'Article';
+          case 'page': return 'Page';
+        }
+      }
+      throw new Error('Could not resolve content type.');
+    });
+
     $registry->addFieldResolver('Query', 'route', $builder->compose(
       $builder->produce('route_load', [
         'mapping' => [
@@ -67,12 +78,12 @@ In this example our query could look like this :
 
 ```graphql
 query {
-  route(path: "/node/1") {
-    ... on Article {
-      id
-      title
-    }
-  }
+	route(path: "/node/1") {
+		... on Article {
+			id
+			title
+		}
+	}
 }
 ```
 
@@ -80,11 +91,11 @@ and the response :
 
 ```json
 {
-  "data": {
-    "route": {
-      "id": 1,
-      "title": "Hello GraphQL"
-    }
-  }
+	"data": {
+		"route": {
+			"id": 1,
+			"title": "Hello GraphQL"
+		}
+	}
 }
 ```
